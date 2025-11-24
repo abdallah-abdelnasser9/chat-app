@@ -5,14 +5,11 @@ const nameScreen = document.getElementById("nameScreen");
 const chatScreen = document.getElementById("chatScreen");
 const nameInput = document.getElementById("nameInput");
 const chat = document.getElementById("chat");
+const onlineUsersEl = document.getElementById("onlineUsers");
 const msgInput = document.getElementById("msgInput");
-const typingDiv = document.createElement("div");
+const typingEl = document.getElementById("typing");
 
-typingDiv.style.fontStyle = "italic";
-typingDiv.style.color = "#ccc";
-typingDiv.style.marginBottom = "10px";
-chat.appendChild(typingDiv);
-
+// Enter chat
 function enterChat() {
   const name = nameInput.value.trim();
   if (!name) return;
@@ -29,65 +26,56 @@ function enterChat() {
 // Send message
 function send() {
   const text = msgInput.value.trim();
-  if (text === "") return;
+  if (!text) return;
 
   socket.emit("sendMessage", text);
   msgInput.value = "";
   socket.emit("stopTyping");
 }
 
-// Enter key for both screens
-nameInput.addEventListener("keypress", (e) => {
-  if (e.key === "Enter") enterChat();
+// Typing events
+msgInput.addEventListener("input", () => {
+  if (msgInput.value.trim() !== "") {
+    socket.emit("typing");
+  } else {
+    socket.emit("stopTyping");
+  }
 });
 
 msgInput.addEventListener("keypress", (e) => {
   if (e.key === "Enter") send();
-  else socket.emit("typing");
 });
 
-// Stop typing when input loses focus
-msgInput.addEventListener("blur", () => {
-  socket.emit("stopTyping");
+nameInput.addEventListener("keypress", (e) => {
+  if (e.key === "Enter") enterChat();
 });
 
-// Receive chat messages
+// Receive messages
 socket.on("chatMessage", (data) => {
   const div = document.createElement("div");
   div.classList.add("msg");
+  if (data.user === username) div.classList.add("you");
 
-  // System message styling
-  if (data.user === "System") {
-    div.style.background = "rgba(255,255,255,0.2)";
-    div.style.fontStyle = "italic";
-    div.style.textAlign = "center";
-  }
-  else if (data.user === username) {
-    div.classList.add("you");
-  }
-
-  div.innerHTML = `<span class="user">${data.user}</span>${data.message}`;
+  div.innerHTML = `<span class="user">${data.user}</span> <span class="time">[${data.time}]</span><br>${data.message}`;
   chat.appendChild(div);
   chat.scrollTop = chat.scrollHeight;
 });
 
-// Typing indicator
-let typingUsers = new Set();
+// Receive online users
+socket.on("onlineUsers", (users) => {
+  onlineUsersEl.innerHTML = "";
+  users.forEach((u) => {
+    const li = document.createElement("li");
+    li.textContent = u;
+    onlineUsersEl.appendChild(li);
+  });
+});
 
+// Typing indicator
 socket.on("typing", (user) => {
-  typingUsers.add(user);
-  updateTyping();
+  typingEl.textContent = `${user} is typing...`;
 });
 
 socket.on("stopTyping", (user) => {
-  typingUsers.delete(user);
-  updateTyping();
+  typingEl.textContent = "";
 });
-
-function updateTyping() {
-  if (typingUsers.size === 0) {
-    typingDiv.innerText = "";
-  } else {
-    typingDiv.innerText = `${[...typingUsers].join(", ")} typing...`;
-  }
-}

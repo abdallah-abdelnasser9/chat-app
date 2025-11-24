@@ -5,26 +5,33 @@ const io = require("socket.io")(http);
 
 app.use(express.static("public"));
 
+let onlineUsers = {};
+
 io.on("connection", (socket) => {
   console.log("A user connected");
 
   // Set username
   socket.on("setUsername", (username) => {
     socket.username = username;
+    onlineUsers[socket.id] = username;
 
-    // Notify other users
+    // Notify everyone
+    io.emit("onlineUsers", Object.values(onlineUsers));
     socket.broadcast.emit("chatMessage", {
       user: "System",
-      message: `${username} has joined the chat`
+      message: `${username} has joined the chat`,
+      time: new Date().toLocaleTimeString()
     });
   });
 
   // Chat messages
   socket.on("sendMessage", (msg) => {
-    io.emit("chatMessage", {
+    const messageData = {
       user: socket.username,
-      message: msg
-    });
+      message: msg,
+      time: new Date().toLocaleTimeString()
+    };
+    io.emit("chatMessage", messageData);
   });
 
   // Typing indicator
@@ -38,10 +45,13 @@ io.on("connection", (socket) => {
 
   // Disconnect
   socket.on("disconnect", () => {
-    if(socket.username){
+    if (socket.username) {
+      delete onlineUsers[socket.id];
+      io.emit("onlineUsers", Object.values(onlineUsers));
       io.emit("chatMessage", {
         user: "System",
-        message: `${socket.username} has left the chat`
+        message: `${socket.username} has left the chat`,
+        time: new Date().toLocaleTimeString()
       });
     }
     console.log("A user left");

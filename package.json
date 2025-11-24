@@ -1,18 +1,21 @@
 {
-  "name": "socket",
+  "name": "chat-app",
   "version": "1.0.0",
-  "description": "",
+  "description": "Real-time chat app with Socket.io and Express",
   "main": "server.js",
   "scripts": {
-      "start": "node server.js"
+    "start": "node server.js",
+    "dev": "nodemon server.js"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": ["chat", "socket.io", "nodejs", "express"],
+  "author": "Abdallah",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
     "express": "^5.1.0",
-    "nodemon": "^3.1.11",
     "socket.io": "^4.8.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.11"
   }
 }

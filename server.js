@@ -48,6 +48,5 @@ io.on("connection", (socket) => {
   });
 });
 
-// Use dynamic PORT for deployment
 const PORT = process.env.PORT || 3000;
 http.listen(PORT, () => console.log(`Server running on port ${PORT}`));

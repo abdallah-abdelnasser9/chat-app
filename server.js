@@ -9,7 +9,7 @@ let onlineUsers = {};
 
 io.on("connection", (socket) => {
   console.log("A user connected");
-  
+
   socket.on("setUsername", (username) => {
     socket.username = username;
     onlineUsers[socket.id] = username;
@@ -18,7 +18,7 @@ io.on("connection", (socket) => {
     socket.broadcast.emit("chatMessage", {
       user: "System",
       message: `${username} has joined the chat`,
-      time: new Date().toLocaleTimeString()
+      time: new Date().toISOString()
     });
   });
 
@@ -26,7 +26,7 @@ io.on("connection", (socket) => {
     const messageData = {
       user: socket.username,
       message: msg,
-      time: new Date().toLocaleTimeString()
+      time: new Date().toISOString()
     };
     io.emit("chatMessage", messageData);
   });
@@ -46,7 +46,7 @@ io.on("connection", (socket) => {
       io.emit("chatMessage", {
         user: "System",
         message: `${socket.username} has left the chat`,
-        time: new Date().toLocaleTimeString()
+        time: new Date().toISOString()
       });
     }
     console.log("A user left");

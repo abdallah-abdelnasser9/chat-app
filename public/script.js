@@ -13,13 +13,10 @@ const sendBtn = document.querySelector("#inputArea button");
 function enterChat() {
   const name = nameInput.value.trim();
   if (!name) return;
-
   username = name;
   socket.emit("setUsername", username);
-
   nameScreen.classList.add("hidden");
   chatScreen.classList.remove("hidden");
-
   msgInput.focus();
 }
 
@@ -31,9 +28,9 @@ function send() {
   msgInput.value = "";
   socket.emit("stopTyping");
 }
-
 sendBtn.addEventListener("click", send);
 
+// Typing indicator
 msgInput.addEventListener("input", () => {
   if (msgInput.value.trim() !== "") {
     socket.emit("typing");

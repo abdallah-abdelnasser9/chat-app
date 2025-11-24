@@ -8,6 +8,7 @@ const chat = document.getElementById("chat");
 const onlineUsersEl = document.getElementById("onlineUsers");
 const msgInput = document.getElementById("msgInput");
 const typingEl = document.getElementById("typing");
+const sendBtn = document.querySelector("#inputArea button"); 
 
 function enterChat() {
   const name = nameInput.value.trim();
@@ -30,6 +31,8 @@ function send() {
   msgInput.value = "";
   socket.emit("stopTyping");
 }
+
+sendBtn.addEventListener("click", send);
 
 msgInput.addEventListener("input", () => {
   if (msgInput.value.trim() !== "") {

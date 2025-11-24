@@ -6,17 +6,18 @@ const chatScreen = document.getElementById("chatScreen");
 const nameInput = document.getElementById("nameInput");
 const chat = document.getElementById("chat");
 const msgInput = document.getElementById("msgInput");
-const typingDiv = document.getElementById("typing");
+const typingDiv = document.createElement("div");
 
-let typingTimeout;
+typingDiv.style.fontStyle = "italic";
+typingDiv.style.color = "#ccc";
+typingDiv.style.marginBottom = "10px";
+chat.appendChild(typingDiv);
 
-// ---------------- ENTER CHAT ----------------
 function enterChat() {
   const name = nameInput.value.trim();
   if (!name) return;
 
   username = name;
-
   socket.emit("setUsername", username);
 
   nameScreen.classList.add("hidden");
@@ -25,40 +26,43 @@ function enterChat() {
   msgInput.focus();
 }
 
-nameInput.addEventListener("keypress", (e) => {
-  if (e.key === "Enter") {
-    enterChat();
-  }
-});
-
-// ---------------- SEND MESSAGE ----------------
+// Send message
 function send() {
   const text = msgInput.value.trim();
   if (text === "") return;
 
   socket.emit("sendMessage", text);
-  socket.emit("stopTyping");
   msgInput.value = "";
+  socket.emit("stopTyping");
 }
 
-msgInput.addEventListener("keypress", (e) => {
-  if (e.key === "Enter") {
-    send();
-  } else {
-    socket.emit("typing");
-    if (typingTimeout) clearTimeout(typingTimeout);
-    typingTimeout = setTimeout(() => {
-      socket.emit("stopTyping");
-    }, 800);
-  }
+// Enter key for both screens
+nameInput.addEventListener("keypress", (e) => {
+  if (e.key === "Enter") enterChat();
 });
 
-// ---------------- RECEIVE MESSAGE ----------------
+msgInput.addEventListener("keypress", (e) => {
+  if (e.key === "Enter") send();
+  else socket.emit("typing");
+});
+
+// Stop typing when input loses focus
+msgInput.addEventListener("blur", () => {
+  socket.emit("stopTyping");
+});
+
+// Receive chat messages
 socket.on("chatMessage", (data) => {
   const div = document.createElement("div");
   div.classList.add("msg");
 
-  if (data.user === username) {
+  // System message styling
+  if (data.user === "System") {
+    div.style.background = "rgba(255,255,255,0.2)";
+    div.style.fontStyle = "italic";
+    div.style.textAlign = "center";
+  }
+  else if (data.user === username) {
     div.classList.add("you");
   }
 
@@ -67,11 +71,23 @@ socket.on("chatMessage", (data) => {
   chat.scrollTop = chat.scrollHeight;
 });
 
-// ---------------- TYPING INDICATOR ----------------
-socket.on("typing", (name) => {
-  typingDiv.textContent = `${name} is typing...`;
+// Typing indicator
+let typingUsers = new Set();
+
+socket.on("typing", (user) => {
+  typingUsers.add(user);
+  updateTyping();
 });
 
-socket.on("stopTyping", () => {
-  typingDiv.textContent = "";
+socket.on("stopTyping", (user) => {
+  typingUsers.delete(user);
+  updateTyping();
 });
+
+function updateTyping() {
+  if (typingUsers.size === 0) {
+    typingDiv.innerText = "";
+  } else {
+    typingDiv.innerText = `${[...typingUsers].join(", ")} typing...`;
+  }
+}

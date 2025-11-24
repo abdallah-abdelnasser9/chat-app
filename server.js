@@ -8,10 +8,18 @@ app.use(express.static("public"));
 io.on("connection", (socket) => {
   console.log("A user connected");
 
+  // Set username
   socket.on("setUsername", (username) => {
     socket.username = username;
+
+    // Notify other users
+    socket.broadcast.emit("chatMessage", {
+      user: "System",
+      message: `${username} has joined the chat`
+    });
   });
 
+  // Chat messages
   socket.on("sendMessage", (msg) => {
     io.emit("chatMessage", {
       user: socket.username,
@@ -25,12 +33,21 @@ io.on("connection", (socket) => {
   });
 
   socket.on("stopTyping", () => {
-    socket.broadcast.emit("stopTyping");
+    socket.broadcast.emit("stopTyping", socket.username);
   });
 
+  // Disconnect
   socket.on("disconnect", () => {
+    if(socket.username){
+      io.emit("chatMessage", {
+        user: "System",
+        message: `${socket.username} has left the chat`
+      });
+    }
     console.log("A user left");
   });
 });
 
-http.listen(3000, () => console.log("Server running on http://localhost:3000"));
+// Use dynamic PORT for deployment
+const PORT = process.env.PORT || 3000;
+http.listen(PORT, () => console.log(`Server running on port ${PORT}`));

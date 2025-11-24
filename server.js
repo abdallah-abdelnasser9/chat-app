@@ -9,13 +9,11 @@ let onlineUsers = {};
 
 io.on("connection", (socket) => {
   console.log("A user connected");
-
-  // Set username
+  
   socket.on("setUsername", (username) => {
     socket.username = username;
     onlineUsers[socket.id] = username;
 
-    // Notify everyone
     io.emit("onlineUsers", Object.values(onlineUsers));
     socket.broadcast.emit("chatMessage", {
       user: "System",
@@ -24,7 +22,6 @@ io.on("connection", (socket) => {
     });
   });
 
-  // Chat messages
   socket.on("sendMessage", (msg) => {
     const messageData = {
       user: socket.username,
@@ -34,7 +31,6 @@ io.on("connection", (socket) => {
     io.emit("chatMessage", messageData);
   });
 
-  // Typing indicator
   socket.on("typing", () => {
     socket.broadcast.emit("typing", socket.username);
   });
@@ -43,7 +39,6 @@ io.on("connection", (socket) => {
     socket.broadcast.emit("stopTyping", socket.username);
   });
 
-  // Disconnect
   socket.on("disconnect", () => {
     if (socket.username) {
       delete onlineUsers[socket.id];

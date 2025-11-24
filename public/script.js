@@ -9,7 +9,6 @@ const onlineUsersEl = document.getElementById("onlineUsers");
 const msgInput = document.getElementById("msgInput");
 const typingEl = document.getElementById("typing");
 
-// Enter chat
 function enterChat() {
   const name = nameInput.value.trim();
   if (!name) return;
@@ -23,7 +22,6 @@ function enterChat() {
   msgInput.focus();
 }
 
-// Send message
 function send() {
   const text = msgInput.value.trim();
   if (!text) return;
@@ -33,7 +31,6 @@ function send() {
   socket.emit("stopTyping");
 }
 
-// Typing events
 msgInput.addEventListener("input", () => {
   if (msgInput.value.trim() !== "") {
     socket.emit("typing");
@@ -50,7 +47,6 @@ nameInput.addEventListener("keypress", (e) => {
   if (e.key === "Enter") enterChat();
 });
 
-// Receive messages
 socket.on("chatMessage", (data) => {
   const div = document.createElement("div");
   div.classList.add("msg");
@@ -61,7 +57,6 @@ socket.on("chatMessage", (data) => {
   chat.scrollTop = chat.scrollHeight;
 });
 
-// Receive online users
 socket.on("onlineUsers", (users) => {
   onlineUsersEl.innerHTML = "";
   users.forEach((u) => {
@@ -71,7 +66,6 @@ socket.on("onlineUsers", (users) => {
   });
 });
 
-// Typing indicator
 socket.on("typing", (user) => {
   typingEl.textContent = `${user} is typing...`;
 });
